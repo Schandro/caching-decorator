@@ -1,0 +1,62 @@
+{
+  "name": "typescript-cacheable",
+  "version": "1.0.0",
+  "description": "A caching (memoization) decorator for Typescript",
+  "author": "MSTS",
+  "license": "Mozilla Public License Version 2.0",
+  "scripts": {
+    "build": "rm -fr dist && tsc -p tsconfig.build.json --strict && npm run lint && npm test",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json -c tslint.json",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage --forceExit",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register/transpile-only node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json"
+  },
+  "dependencies": {
+    "cls-hooked": "^4.2.2",
+    "dotenv": "^5.0.0",
+    "find-config": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/cls-hooked": "^4.3.0",
+    "@types/express": "^4.17.0",
+    "@types/jest": "^24.0.15",
+    "@types/supertest": "^2.0.8",
+    "express": "^4.17.1",
+    "faker": "^4.1.0",
+    "jest": "^24.8.0",
+    "nodemon": "^1.19.1",
+    "prettier": "^1.17.1",
+    "statman-stopwatch": "^2.8.2",
+    "supertest": "^4.0.2",
+    "ts-jest": "^24.0.2",
+    "ts-node": "^8.3.0",
+    "tsconfig-paths": "^3.8.0",
+    "tslint": "^5.18.0",
+    "typescript": "^3.5.2"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "./",
+    "testRegex": ".spec.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverage": false,
+    "coverageReporters": [
+      "json",
+      "html"
+    ],
+    "coverageDirectory": "./coverage",
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "@/(.*)$": "<rootDir>/src/$1"
+    }
+  }
+}
