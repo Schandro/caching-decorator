@@ -1,6 +1,6 @@
 {
   "name": "typescript-cacheable",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A caching (memoization) decorator for Typescript",
   "author": "MSTS",
   "license": "Mozilla Public License Version 2.0",
@@ -14,6 +14,14 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register/transpile-only node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/msts-public/general/typescript-cacheable"
+  },
+  "bugs": {
+    "url": "https://gitlab.com/msts-public/general/typescript-cacheable/issues"
+  },
+  "homepage": "https://gitlab.com/msts-public/general/typescript-cacheable/#readme",
   "dependencies": {
     "cls-hooked": "^4.2.2",
     "dotenv": "^5.0.0",
