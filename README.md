@@ -5,7 +5,7 @@ caching concerns.
 
 # Quick Start 
 
-Apply the decorator to cacheable long-running methods or getters. 
+Apply the decorator to cache long-running (or high compute cost) methods or getters. 
 
 In the example below, the first invocation will take 100ms. Subsequent invocations will take 1-2ms. The result will be cached globally, until the end of time, as long as the owning object lives.  
 
@@ -184,7 +184,7 @@ The default (true) means that if the cached method returns a null or undefined v
 When `false` a null return value from the cache will result in the cached method body being evaluated again. Use this to cache temporal values, such as fx rates where once they exist for a given date are immutable, but may as yet be undefined.
                                  
 ```typescript
-@Cacheable({ cacheUndefined: null })
+@Cacheable({ cacheUndefined: false })
 public async findGrumpiest(): Promise<Dwarf> {    
 }
 ```
