@@ -1,6 +1,6 @@
 {
   "name": "typescript-cacheable",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A caching (memoization) decorator for Typescript",
   "author": "MSTS",
   "license": "Mozilla Public License Version 2.0",
