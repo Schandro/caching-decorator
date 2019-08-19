@@ -184,7 +184,7 @@ The default (true) means that if the cached method returns a null or undefined v
 When `false` a null return value from the cache will result in the cached method body being evaluated again. Use this to cache temporal values, such as fx rates where once they exist for a given date are immutable, but may as yet be undefined.
                                  
 ```typescript
-@Cacheable({ cacheUndefined: null })
+@Cacheable({ cacheUndefined: false })
 public async findGrumpiest(): Promise<Dwarf> {    
 }
 ```
