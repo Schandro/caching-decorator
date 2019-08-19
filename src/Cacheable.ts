@@ -32,7 +32,7 @@ async function cacheOriginalMethod(originalMethod: Method, options: CacheableOpt
     } else {
         const returnValue = await originalMethod.apply(this, args as any);
         if (returnValue != undefined || options.cacheUndefined === true) {
-            map.set(cacheKey, returnValue, options && options.ttl ? options.ttl : undefined);
+            map.set(cacheKey, returnValue, options.ttl);
         }
         return returnValue;
     }
