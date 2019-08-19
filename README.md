@@ -5,7 +5,7 @@ caching concerns.
 
 # Quick Start 
 
-Apply the decorator to cacheable long-running methods or getters. 
+Apply the decorator to cache long-running (or high compute cost) methods or getters. 
 
 In the example below, the first invocation will take 100ms. Subsequent invocations will take 1-2ms. The result will be cached globally, until the end of time, as long as the owning object lives.  
 
