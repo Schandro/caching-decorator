@@ -1,7 +1,22 @@
 {
   "name": "typescript-cacheable",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A caching (memoization) decorator for Typescript",
+  "keywords": [
+    "cache",
+    "caching",
+    "memoize",
+    "memoization",
+    "typescript",
+    "decorator",
+    "memoise",
+    "memoisation",
+    "performance",
+    "cls-hooked",
+    "local storage",
+    "scopes",
+    "ttl"
+  ],
   "author": "MSTS",
   "license": "Mozilla Public License Version 2.0",
   "scripts": {
