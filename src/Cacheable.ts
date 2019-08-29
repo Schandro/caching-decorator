@@ -1,7 +1,6 @@
-import { CacheableOptions, optionsWithDefaults } from '@/CacheableOptions';
-import { implementsCacheableKey } from '@/CacheableKey';
-import { CacheRegistryProvider } from '@/registry/CacheRegistryProvider';
-
+import { CacheableOptions, optionsWithDefaults } from './CacheableOptions';
+import { implementsCacheableKey } from './CacheableKey';
+import { CacheRegistryProvider } from './registry/CacheRegistryProvider';
 export type Method = (...args: any[]) => any;
 
 export function Cacheable(options?: CacheableOptions) {

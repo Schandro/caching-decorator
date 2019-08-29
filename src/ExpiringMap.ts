@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 
-import { MapEntry } from '@/MapEntry';
+import { MapEntry } from './MapEntry';
 
 export class ExpiringMap<K, V> extends EventEmitter {
 

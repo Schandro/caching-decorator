@@ -1,6 +1,6 @@
 {
   "name": "typescript-cacheable",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A caching (memoization) decorator for Typescript",
   "keywords": [
     "cache",
@@ -18,7 +18,8 @@
     "ttl"
   ],
   "files": [
-    "src/**/*"
+    "src/**/*",
+    "dist/**/*"
   ],
   "main": "dist/Cacheable.js",
   "types": "dist/Cacheable.d.ts",
@@ -82,9 +83,6 @@
       "html"
     ],
     "coverageDirectory": "./coverage",
-    "testEnvironment": "node",
-    "moduleNameMapper": {
-      "@/(.*)$": "<rootDir>/src/$1"
-    }
+    "testEnvironment": "node"
   }
 }

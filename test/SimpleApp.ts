@@ -1,7 +1,7 @@
 import * as express from 'express';
-import { localStorage } from '@/registry/LocalCacheRegistry';
+import { localStorage } from '../src/registry/LocalCacheRegistry';
 import { DwarfRepository } from './DwarfRepository';
-import { Dwarf } from './Dwarf';
+
 const Stopwatch = require('statman-stopwatch');
 
 export const app = express();

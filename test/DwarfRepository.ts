@@ -1,6 +1,6 @@
-import { Cacheable } from '@/Cacheable';
+import { Cacheable } from '../src/Cacheable';
 import { Dwarf } from './Dwarf';
-import { Scope } from '@/Scope';
+import { Scope } from '../src/Scope';
 
 const faker = require('faker');
 

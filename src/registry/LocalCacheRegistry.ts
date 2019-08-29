@@ -1,6 +1,6 @@
-import { CacheRegistry } from '@/registry/CacheRegistry';
-import { ExpiringMap } from '@/ExpiringMap';
-import { Method } from '@/Cacheable';
+import { CacheRegistry } from './CacheRegistry';
+import { ExpiringMap } from '../ExpiringMap';
+import { Method } from '../Cacheable';
 import cls = require('cls-hooked');
 
 const nameSpaceName = process.env.TYPESCRIPT_CACHEABLE_NAMESPACE || '__tsc_storage__';

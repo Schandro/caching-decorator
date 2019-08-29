@@ -1,7 +1,7 @@
-import { GlobalCacheRegistry } from '@/registry/GlobalCacheRegistry';
-import { LocalStorageCacheRegistry } from '@/registry/LocalCacheRegistry';
-import { Scope } from '@/Scope';
-import { CacheRegistry } from '@/registry/CacheRegistry';
+import { GlobalCacheRegistry } from './GlobalCacheRegistry';
+import { LocalStorageCacheRegistry } from './LocalCacheRegistry';
+import { Scope } from '../Scope';
+import { CacheRegistry } from './CacheRegistry';
 
 export class CacheRegistryProvider {
 
