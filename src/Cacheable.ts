@@ -24,7 +24,7 @@ function wrap(originalMethod: Method, options: CacheableOptions): Method {
 
 async function cacheOriginalMethod(originalMethod: Method, options: CacheableOptions, args: any[]): Promise<any> {
 
-    const map = CacheRegistryProvider.forScope(options.scope).getOrInit(this, originalMethod);
+    const map = CacheRegistryProvider.forScope(options.scope!).getOrInit(this, originalMethod);
     const cacheKey = buildCacheKey(args, `${this.constructor.name}::${originalMethod.name}`);
 
     if (map.has(cacheKey)) {
