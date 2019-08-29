@@ -1,6 +1,6 @@
 # Typescript Cacheable
 
-A caching (memoization) decorator, to cache the results of expensive methods or property accessors. The underlying function is wrapped to apply 
+An in-memory caching (memoization) decorator for TypeScript. It will cache the results of expensive methods or property accessors. The underlying function is wrapped to apply 
 caching concerns. 
 
 # Quick Start 

@@ -1,7 +1,7 @@
 {
   "name": "typescript-cacheable",
-  "version": "1.0.5",
-  "description": "A caching (memoization) decorator for Typescript",
+  "version": "1.0.6",
+  "description": "An in-memory caching (memoization) decorator for Typescript",
   "keywords": [
     "cache",
     "caching",
