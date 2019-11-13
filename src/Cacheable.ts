@@ -18,9 +18,6 @@ export function Cacheable(options?: CacheableOptions) {
 
 function wrap(originalMethod: Method, options: CacheableOptions): Method {
     return function (...args: any[]): any {
-        for (let arg of args) {
-            console.log(arg.name);
-        }
         return cacheOriginalMethod.apply(this, [originalMethod, options, args]);
     };
 }
