@@ -10,7 +10,16 @@ describe('Cacheable()', () => {
 
     let customerRepo: DwarfRepository;
 
-    beforeAll(() => {
+    function getGlobalCacheEntry<T>(methodName: string, cacheKey): T | undefined {
+        const cacheableMap = customerRepo['__cacheable_map_' + methodName];
+        if (cacheableMap) {
+            return cacheableMap.get(cacheKey);
+        } else {
+            return undefined;
+        }
+    }
+
+    beforeEach(() => {
         customerRepo = new DwarfRepository();
     });
 
@@ -35,25 +44,36 @@ describe('Cacheable()', () => {
             done();
         });
 
-        it('it returns the cached for non async method', async (done) => {
+        it('it returns the cached value for non async method', (done) => {
+            const expected = 1000000000;
+
+            // Check that the cache is empty to start with.
+            let cacheEntry = getGlobalCacheEntry('nonAsync', '__no_args__');
+            expect(cacheEntry).toBe(undefined);
+
             const watch = new Stopwatch();
             watch.start();
 
-            const result = await customerRepo.nonAsync();
+            const result = customerRepo.nonAsync();
 
-            expect(result).toEqual(1000000000);
+            expect(result).not.toBeInstanceOf(Promise); // should stay sync
+            expect(result).toEqual(expected);
             const time = watch.read();
             expect(time).toBeGreaterThan(100);
 
+            // Verify that the cache was populated
+            cacheEntry = getGlobalCacheEntry('nonAsync', '__no_args__');
+            expect(cacheEntry).toBe(expected);
+
             watch.reset();
             watch.start();
-            await customerRepo.nonAsync();
-            expect(result).toEqual(1000000000);
+            customerRepo.nonAsync();
+            expect(result).not.toBeInstanceOf(Promise);
+            expect(result).toEqual(expected);
             expect(watch.read()).toBeLessThan(10);
 
             done();
         });
-
     });
 
     describe('When used on a method that takes a single parameters', () => {
