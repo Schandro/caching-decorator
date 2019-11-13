@@ -25,7 +25,7 @@ function wrap(originalMethod: Method, options: CacheableOptions): Method {
     };
 }
 
-async function cacheOriginalMethod(originalMethod: Method, options: CacheableOptions, args: any[]): Promise<any> {
+function cacheOriginalMethod(originalMethod: Method, options: CacheableOptions, args: any[]): any {
 
     const map = CacheRegistryProvider.forScope(options.scope!).getOrInit(this, originalMethod);
     const cacheKey = buildCacheKey(args, `${this.constructor.name}::${originalMethod.name}`);
@@ -33,11 +33,18 @@ async function cacheOriginalMethod(originalMethod: Method, options: CacheableOpt
     if (map.has(cacheKey)) {
         return map.get(cacheKey);
     } else {
-        const returnValue = await originalMethod.apply(this, args as any);
-        if (returnValue != undefined || options.cacheUndefined === true) {
-            map.set(cacheKey, returnValue, options.ttl);
+        const returnValueOrPromise = originalMethod.apply(this, args as any);
+        function returnValueHandler(returnValue: any) {
+            if (returnValue != undefined || options.cacheUndefined === true) {
+                map.set(cacheKey, returnValue, options.ttl);
+            }
+            return returnValue;
         }
-        return returnValue;
+        if (isPromiseLike(returnValueOrPromise)) {
+            return returnValueOrPromise.then(returnValueHandler);
+        } else {
+            return returnValueHandler(returnValueOrPromise);
+        }
     }
 }
 
@@ -60,4 +67,18 @@ function buildCacheKey(args: any[], symbolName: string): string {
         }
     });
     return strings.reduce((previousValue, currentValue) => `${previousValue}_${currentValue}`);
+}
+
+/**
+ * In order to wait for wrapped methods that return Promises, we need to check if the returned value is a Promise.
+ * However, consuming applications might be using their own Promise library (e.g. Bluebird), so we can't simply check if
+ * the value is an instance of the global `Promise` object.
+ * Instead, we check if the value looks like a Promise, i.e. it is an object that has a `then()` method.
+ */
+function isPromiseLike(value: any): value is PromiseLike<any> {
+    return (
+        (typeof value === 'function' || typeof value === 'object') // functions can have properties just like objects
+        && value !== null // "null" values have type "object"
+        && typeof value.then === 'function'
+    );
 }
