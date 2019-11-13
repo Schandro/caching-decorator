@@ -1,6 +1,7 @@
 import { CacheableOptions, optionsWithDefaults } from './CacheableOptions';
 import { implementsCacheableKey } from './CacheableKey';
 import { CacheRegistryProvider } from './registry/CacheRegistryProvider';
+
 export type Method = (...args: any[]) => any;
 
 export function Cacheable(options?: CacheableOptions) {
@@ -16,7 +17,10 @@ export function Cacheable(options?: CacheableOptions) {
 }
 
 function wrap(originalMethod: Method, options: CacheableOptions): Method {
-    return function(...args: any[]): any {
+    return function (...args: any[]): any {
+        for (let arg of args) {
+            console.log(arg.name);
+        }
         return cacheOriginalMethod.apply(this, [originalMethod, options, args]);
     };
 }
