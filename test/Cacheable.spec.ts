@@ -132,6 +132,13 @@ describe('Cacheable()', () => {
             }
         });
 
+        it(`supports passing an argument with value of undefined`, () => {
+            customerRepo.greetDwarf(undefined);
+        });
+
+        it(`supports passing an argument with value of null`, () => {
+            customerRepo.greetDwarf(null);
+        });
     });
 
     describe(`when used with ttl option`, () => {
