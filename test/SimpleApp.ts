@@ -21,7 +21,7 @@ app.get('/hello', async (req: express.Request, res: express.Response): Promise<v
     watch.start();
     let dwarf = await dwarfRepo.findRandom();
     let time = watch.read();
-    expect(time).toBeGreaterThan(100);
+    expect(time).toBeGreaterThanOrEqual(99);
     watch.reset();
     watch.start();
     let anotherDwarf = await dwarfRepo.findRandom();

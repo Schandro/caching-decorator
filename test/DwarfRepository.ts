@@ -102,4 +102,8 @@ export class DwarfRepository {
         });
     }
 
+    @Cacheable()
+    public greetDwarf(name: string | undefined | null): string {
+        return `Hello, ${ name || 'dwarf' }!`;
+    }
 }
