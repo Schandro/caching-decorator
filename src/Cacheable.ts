@@ -54,9 +54,9 @@ function buildCacheKey(args: any[], symbolName: string): string {
         if (typeof it === 'object' && implementsCacheableKey(it)) {
             return it.cacheKey();
         } else {
-            if (it.toString === Object.prototype.toString) {
+            if (it === null || it === undefined || it.toString === Object.prototype.toString) {
                 throw new Error('Cannot cache: ' + symbolName + '. To serve as a cache key, a parameter must ' +
-                    'override toString, and return a unique value. The parameter at index ' + index + 'does not. ' +
+                    'override toString, and return a unique value. The parameter at index ' + index + ' does not. ' +
                     'Alternatively, consider providing a hash function.');
             } else {
                 return it.toString();

@@ -8,10 +8,10 @@ const request = require('supertest');
 
 describe('Cacheable()', () => {
 
-    let customerRepo: DwarfRepository;
+    let dwarfRepo: DwarfRepository;
 
-    function getGlobalCacheEntry<T>(methodName: string, cacheKey): T | undefined {
-        const cacheableMap = customerRepo['__cacheable_map_' + methodName];
+    function getGlobalCacheEntry<T>(methodName: keyof typeof dwarfRepo, cacheKey: string): T | undefined {
+        const cacheableMap = dwarfRepo['__cacheable_map_' + methodName];
         if (cacheableMap) {
             return cacheableMap.get(cacheKey);
         } else {
@@ -19,125 +19,135 @@ describe('Cacheable()', () => {
         }
     }
 
+    async function doAsyncCacheTest<T>(
+        expected: T,
+        methodName: keyof typeof dwarfRepo,
+        cacheKey: string,
+        beforeTime: number,
+        afterTime: number,
+        testExecutor: () => Promise<T>
+    ) {
+        // Check that the cache is empty to start with.
+        let cacheEntry = getGlobalCacheEntry(methodName, cacheKey);
+        expect(cacheEntry).toBe(undefined);
+
+        const watch = new Stopwatch();
+        watch.start();
+
+        let result = await testExecutor();
+
+        // Verify that the cache was populated
+        cacheEntry = getGlobalCacheEntry(methodName, cacheKey);
+        expect(cacheEntry).toEqual(expected);
+
+        expect(result).toEqual(expected);
+        const time = watch.read();
+        expect(time).toBeGreaterThanOrEqual(beforeTime);
+        watch.reset();
+        watch.start();
+
+        result = await testExecutor();
+        expect(result).toEqual(expected);
+        expect(watch.read()).toBeLessThan(afterTime);
+    }
+
     beforeEach(() => {
-        customerRepo = new DwarfRepository();
+        dwarfRepo = new DwarfRepository();
     });
 
     describe('when used with no arguments', () => {
 
-        it('it returns the cached value', async (done) => {
-            const watch = new Stopwatch();
-            watch.start();
-
-            const result = await customerRepo.findHappiest();
-
-            expect(result).toEqual(new Dwarf('Huck', 'Finn'));
-            const time = watch.read();
-            expect(time).toBeGreaterThan(100);
-
-            watch.reset();
-            watch.start();
-            await customerRepo.findHappiest();
-            expect(result).toEqual(new Dwarf('Huck', 'Finn'));
-            expect(watch.read()).toBeLessThan(10);
-
-            done();
+        it('it returns the cached value', async () => {
+            await doAsyncCacheTest(
+                new Dwarf('Huck', 'Finn'),
+                'findHappiest',
+                '__no_args__',
+                99,
+                10,
+                () => dwarfRepo.findHappiest()
+            );
         });
 
-        it('it returns the cached value for non async method', (done) => {
-            const expected = 1000000000;
-
-            // Check that the cache is empty to start with.
-            let cacheEntry = getGlobalCacheEntry('nonAsync', '__no_args__');
-            expect(cacheEntry).toBe(undefined);
-
-            const watch = new Stopwatch();
-            watch.start();
-
-            const result = customerRepo.nonAsync();
-
-            expect(result).not.toBeInstanceOf(Promise); // should stay sync
-            expect(result).toEqual(expected);
-            const time = watch.read();
-            expect(time).toBeGreaterThan(100);
-
-            // Verify that the cache was populated
-            cacheEntry = getGlobalCacheEntry('nonAsync', '__no_args__');
-            expect(cacheEntry).toBe(expected);
-
-            watch.reset();
-            watch.start();
-            customerRepo.nonAsync();
-            expect(result).not.toBeInstanceOf(Promise);
-            expect(result).toEqual(expected);
-            expect(watch.read()).toBeLessThan(10);
-
-            done();
+        it('it returns the cached value for non async method', async () => {
+            await doAsyncCacheTest(
+                1000000000,
+                'nonAsync',
+                '__no_args__',
+                99,
+                10,
+                async () => dwarfRepo.nonAsync()
+            );
         });
     });
 
-    describe('When used on a method that takes a single parameters', () => {
+    describe('When used on a method that takes a single parameter', () => {
 
-        it('it builds a cache key by calling toString on a single parameter method', async (done) => {
-            const watch = new Stopwatch();
-            watch.start();
+        function doCacheKeyErrorTest<T>(
+            methodName: keyof (typeof dwarfRepo),
+            testExecutor: () => T,
+            expectedIndex: number = 0
+        ) {
+            expect(testExecutor).toThrow('Cannot cache: ' +
+                'DwarfRepository::' + methodName + '. To serve as a cache key, a parameter must ' +
+                'override toString, and return a unique value. The parameter at index ' + expectedIndex + ' does not. Alternatively, ' +
+                'consider providing a hash function.');
+        }
 
-            let result = await customerRepo.countByLastName('Blues');
-
-            expect(result).toEqual(12);
-            const time = watch.read();
-            expect(time).toBeGreaterThan(100);
-            watch.reset();
-            watch.start();
-
-            result = await customerRepo.countByLastName('Blues');
-            expect(result).toEqual(12);
-            expect(watch.read()).toBeLessThan(10);
-
-            done();
+        it('it builds a cache key by calling toString on a single parameter method', async () => {
+            await doAsyncCacheTest(
+                12,
+                'countByLastName',
+                'Blues',
+                99,
+                10,
+                () => dwarfRepo.countByLastName('Blues')
+            );
         });
 
-        it('it builds a cache key by calling toString on a multi parameter method', async (done) => {
-            const watch = new Stopwatch();
-            watch.start();
-
-            let result = await customerRepo.countByFirstAndLastName('Jasper', 'Blues');
-
-            expect(result).toEqual(1);
-            const time = watch.read();
-            expect(time).toBeGreaterThan(50);
-            watch.reset();
-            watch.start();
-
-            result = await customerRepo.countByFirstAndLastName('Jasper', 'Blues');
-            expect(result).toEqual(1);
-            expect(watch.read()).toBeLessThan(10);
-
-            done();
-        });
-
-        it(`throws an error if no hash function is provided and the method parameter:       
+        it(`throws an error if no hash function is provided and the method parameter:
             - Does not implement CacheableKey
-            - does not override toString             
-            `, async (done) => {
-            try {
-                await customerRepo.findWithInterestsMatching(new Dwarf('Barbecue', 'Bob'));
-                throw new Error(`should have thrown`);
-            } catch (e) {
-                expect(e.message).toEqual('Cannot cache: ' +
-                    'DwarfRepository::findWithInterestsMatching. To serve as a cache key, a parameter must ' +
-                    'override toString, and return a unique value. The parameter at index 0does not. Alternatively, ' +
-                    'consider providing a hash function.');
-                done();
-            }
+            - does not override toString
+            `, () => {
+            doCacheKeyErrorTest(
+                'findWithInterestsMatching',
+                () => {
+                    // NOTE: the expected error is thrown before promise is created/returned, because it's thrown in the
+                    //  the decorator.
+                    dwarfRepo.findWithInterestsMatching(new Dwarf('Barbecue', 'Bob'))
+                }
+            );
         });
 
-        it(`supports passing an argument with value of undefined`, () => {
-            customerRepo.greetDwarf(undefined);
+        it(`throws an expected error when passing an argument with value of undefined`, () => {
+            doCacheKeyErrorTest(
+                'greetDwarf',
+                () => {
+                    dwarfRepo.greetDwarf(undefined);
+                }
+            );
         });
 
-        it(`supports passing an argument with value of null`, () => {
-            customerRepo.greetDwarf(null);
+        it(`throws an expected error when passing an argument with value of null`, () => {
+            doCacheKeyErrorTest(
+                'greetDwarf',
+                () => {
+                    dwarfRepo.greetDwarf(null);
+                }
+            );
+        });
+    });
+
+    describe('When used on a method that takes multiple parameters', () => {
+
+        it('it builds a cache key by calling toString on a multi parameter method', async () => {
+            await doAsyncCacheTest(
+                1,
+                'countByFirstAndLastName',
+                'Jasper_Blues',
+                50,
+                10,
+                () => dwarfRepo.countByFirstAndLastName('Jasper', 'Blues')
+            );
         });
     });
 
@@ -147,15 +157,15 @@ describe('Cacheable()', () => {
             const watch = new Stopwatch();
             watch.start();
 
-            let result = await customerRepo.findHappiestWithTimeout();
+            let result = await dwarfRepo.findHappiestWithTimeout();
             expect(result).toEqual(new Dwarf('Huck', 'Finn'));
             const time = watch.read();
-            expect(time).toBeGreaterThan(100);
+            expect(time).toBeGreaterThanOrEqual(99);
 
             setTimeout(async () => {
                 const watch = new Stopwatch();
                 watch.start();
-                let ttlResult = await customerRepo.findHappiestWithTimeout();
+                let ttlResult = await dwarfRepo.findHappiestWithTimeout();
                 expect(ttlResult).not.toBeNull();
                 expect(ttlResult).toEqual(new Dwarf('Huck', 'Finn'));
                 expect(watch.read()).toBeLessThan(10);
@@ -164,9 +174,9 @@ describe('Cacheable()', () => {
             setTimeout(async () => {
                 const watch = new Stopwatch();
                 watch.start();
-                let ttlResult = await customerRepo.findHappiestWithTimeout();
+                let ttlResult = await dwarfRepo.findHappiestWithTimeout();
                 expect(ttlResult).not.toBeNull();
-                expect(watch.read()).toBeGreaterThan(100);
+                expect(watch.read()).toBeGreaterThanOrEqual(99);
                 done();
             }, 1200);
 
@@ -176,87 +186,83 @@ describe('Cacheable()', () => {
 
     describe('when a null or undefined value is returned from the cache', () => {
 
-        it(`should cache this response by default`, async (done) => {
-            const watch = new Stopwatch();
-            watch.start();
-
-            let result = await customerRepo.findSaddest();
-            expect(result).toBeUndefined();
-            let time = watch.read();
-            expect(time).toBeGreaterThan(100);
-
-            watch.reset();
-            watch.start();
-            result = await customerRepo.findSaddest();
-            expect(result).toBeUndefined();
-            expect(watch.read()).toBeLessThan(10);
-            done();
-
+        it(`should cache this response by default`, async () => {
+            await doAsyncCacheTest(
+                undefined,
+                'findSaddest',
+                '__no_args__',
+                99,
+                10,
+                () => dwarfRepo.findSaddest()
+            );
         });
 
-        it(`should cache this response when cacheNulls = true`, async (done) => {
-            const watch = new Stopwatch();
-            watch.start();
-
-            let grumpy = await customerRepo.findGrumpiest();
-            expect(grumpy).toBeNull();
-            let time = watch.read();
-            expect(time).toBeGreaterThan(100);
-
-            watch.reset();
-            watch.start();
-            grumpy = await customerRepo.findGrumpiest();
-            expect(grumpy).toBeNull();
-            expect(watch.read()).toBeLessThan(10);
-            done();
-
+        it(`should cache this response when cacheNulls = true`, async () => {
+            await doAsyncCacheTest(
+                null,
+                'findGrumpiest',
+                '__no_args__',
+                99,
+                10,
+                () => dwarfRepo.findGrumpiest()
+            );
         });
 
-        it(`should not cache nulls when cacheNulls = false`, async (done) => {
+        it(`should not cache nulls when cacheNulls = false`, async () => {
+            const expected = new Dwarf(`Mark`, `MyWords`);
+
+            // Check that the cache is empty to start with.
+            let cacheEntry = getGlobalCacheEntry('findGrumpiestWithoutCachingNulls', '__no_args__');
+            expect(cacheEntry).toBe(undefined);
+
             const watch = new Stopwatch();
             watch.start();
 
-            let grumpy = await customerRepo.findGrumpiestWithoutCachingNulls();
+            let grumpy = await dwarfRepo.findGrumpiestWithoutCachingNulls();
+
+            // Verify that the cache was not populated
+            cacheEntry = getGlobalCacheEntry('findGrumpiestWithoutCachingNulls', '__no_args__');
+            expect(cacheEntry).toBe(undefined);
+
             expect(grumpy).toBeNull();
             let time = watch.read();
-            expect(time).toBeGreaterThan(100);
+            expect(time).toBeGreaterThanOrEqual(99);
 
             watch.reset();
             watch.start();
-            grumpy = await customerRepo.findGrumpiestWithoutCachingNulls();
+            grumpy = await dwarfRepo.findGrumpiestWithoutCachingNulls();
+
+            // Verify that the cache was not populated
+            cacheEntry = getGlobalCacheEntry('findGrumpiestWithoutCachingNulls', '__no_args__');
+            expect(cacheEntry).toEqual(expected);
+
             expect(grumpy).not.toBeNull();
-            expect(grumpy).toEqual(new Dwarf(`Mark`, `MyWords`));
-            expect(watch.read()).toBeGreaterThan(100);
-            done();
-
+            expect(grumpy).toEqual(expected);
+            expect(watch.read()).toBeGreaterThanOrEqual(99);
         });
     });
 
     describe('when the scope is local storage', () => {
 
-        it('it should return the scoped value', async (done) => {
+        it('it should return the scoped value', async () => {
 
-            const responses = [];
-            const count = 6;
+            const responses = new Set();
+            const count = 7;
 
             function validate(response: any) {
-                responses.push(`${response.dwarf.firstName} ${response.dwarf.lastName}`);
-                responses.forEach(response => {
-                    if (responses.filter(it => it === response).length > 1) {
-                        throw new Error(`Response: ${response} and ${it} are unexpected duplicates`);
-                    }
-                });
-                if (responses.length === count) {
-                    done();
-                }
+                const fullName = `${response.dwarf.firstName} ${response.dwarf.lastName}`;
+                expect(responses.has(fullName)).toBe(false);
+                responses.add(fullName);
             }
 
-            for (let i = 0; i <= count; i++) {
-                request(app).get("/hello").expect(200)
+            for (let i = 0; i < count; i++) {
+                await request(app)
+                    .get("/hello")
+                    .expect(200)
                     .then(result => validate(result.body))
-                    .catch(e => done(e));
             }
 
+            expect(responses.size).toEqual(count);
         });
 
     });

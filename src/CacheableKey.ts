@@ -3,5 +3,11 @@ export interface CacheableKey {
 }
 
 export function implementsCacheableKey(object: any): object is CacheableKey {
-    return 'cacheKey' in object;
+    return (
+        object !== null
+        && object !== undefined
+        && 'cacheKey' in object
+        && typeof object['cacheKey'] === 'function'
+        && object['cacheKey'].length === 0
+    );
 }
