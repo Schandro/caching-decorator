@@ -51,10 +51,14 @@ function buildCacheKey(args: any[], symbolName: string): string {
     }
 
     const strings = args.map((it: any, index: number) => {
-        if (typeof it === 'object' && implementsCacheableKey(it)) {
+        if (it === null) {
+            return '__null__';
+        } else if (it === undefined) {
+            return '__undefined__';
+        } else if (typeof it === 'object' && implementsCacheableKey(it)) {
             return it.cacheKey();
         } else {
-            if (it === null || it === undefined || it.toString === Object.prototype.toString) {
+            if (it.toString === Object.prototype.toString) {
                 throw new Error('Cannot cache: ' + symbolName + '. To serve as a cache key, a parameter must ' +
                     'override toString, and return a unique value. The parameter at index ' + index + ' does not. ' +
                     'Alternatively, consider providing a hash function.');

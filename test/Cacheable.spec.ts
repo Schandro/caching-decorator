@@ -118,21 +118,25 @@ describe('Cacheable()', () => {
             );
         });
 
-        it(`throws an expected error when passing an argument with value of undefined`, () => {
-            doCacheKeyErrorTest(
+        it(`supports passing an argument with value of undefined`, async () => {
+            await doAsyncCacheTest(
+                'Hello, dwarf!',
                 'greetDwarf',
-                () => {
-                    dwarfRepo.greetDwarf(undefined);
-                }
+                '__undefined__',
+                Number.NEGATIVE_INFINITY, // don't care about timing in this test
+                Number.POSITIVE_INFINITY,
+                async () => dwarfRepo.greetDwarf(undefined)
             );
         });
 
-        it(`throws an expected error when passing an argument with value of null`, () => {
-            doCacheKeyErrorTest(
+        it(`supports passing an argument with value of null`, async () => {
+            await doAsyncCacheTest(
+                'Hello, dwarf!',
                 'greetDwarf',
-                () => {
-                    dwarfRepo.greetDwarf(null);
-                }
+                '__null__',
+                Number.NEGATIVE_INFINITY, // don't care about timing in this test
+                Number.POSITIVE_INFINITY,
+                async () => dwarfRepo.greetDwarf(null)
             );
         });
     });
