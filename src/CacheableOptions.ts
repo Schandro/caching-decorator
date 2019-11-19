@@ -3,11 +3,11 @@ import { Scope } from './Scope';
 export interface CacheableOptions {
 
     /**
-     * An optional parameter defining the scope. If not specified, the default is GLOBAL. If LOCAL_STORAGE is specified
+     * A parameter defining the scope. If not specified, the default is GLOBAL. If LOCAL_STORAGE is specified
      * then the outcome will be cached within the context of a LOCAL_STORAGE namespace, for example, throughout the
      * span of an HTTP request.
      */
-    scope?: Scope;
+    scope: Scope;
 
     /**
      * An optional parameter specifying the time-to-live in milliseconds. If not specified ttl is indefinite. Consider
@@ -25,7 +25,7 @@ export interface CacheableOptions {
      * may as yet be undefined, for a given input parameter.
      *
      */
-    cacheUndefined?: boolean;
+    cacheUndefined: boolean;
 
 }
 
@@ -34,9 +34,9 @@ export interface CacheableOptions {
  * @param options
  * @return An options instance with default values initialized, given an initial options instance or null.
  */
-export function optionsWithDefaults(options?: CacheableOptions): CacheableOptions {
-    return <CacheableOptions>{
-        scope: options && options.scope != undefined ? options.scope : Scope.GLOBAL,
+export function optionsWithDefaults(options?: Partial<CacheableOptions>): CacheableOptions {
+    return {
+        scope: options && options.scope != undefined ? options.scope : 'GLOBAL',
         ttl: options && options.ttl != undefined ? options.ttl : undefined,
         cacheUndefined: options && options.cacheUndefined != undefined ? options.cacheUndefined : true,
     };

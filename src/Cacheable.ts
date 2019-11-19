@@ -1,36 +1,37 @@
 import { CacheableOptions, optionsWithDefaults } from './CacheableOptions';
 import { implementsCacheableKey } from './CacheableKey';
 import { CacheRegistryProvider } from './registry/CacheRegistryProvider';
+import { UncacheableArgumentError, UncacheablePropertyError } from './Errors';
+import { NoArgsCacheKey, NullValueCacheKey, UndefinedValueCacheKey } from './Symbols';
+import { Method } from './Types';
 
-export type Method = (...args: any[]) => any;
-
-export function Cacheable(options?: CacheableOptions) {
+export function Cacheable(options?: Partial<CacheableOptions>) {
     return (target: Object, propertyKey: string, descriptor: TypedPropertyDescriptor<any>) => {
         if (descriptor.value != undefined) {
             descriptor.value = wrap(descriptor.value, optionsWithDefaults(options));
         } else if (descriptor.get != undefined) {
             descriptor.get = wrap(descriptor.get, optionsWithDefaults(options));
         } else {
-            throw new Error('Only put a Cacheable() decorator on a method or get accessor.');
+            throw new UncacheablePropertyError('Only put a Cacheable() decorator on a method or get accessor.');
         }
     };
 }
 
 function wrap(originalMethod: Method, options: CacheableOptions): Method {
-    return function (...args: any[]): any {
+    return function (this: Object, ...args: any[]): any {
         return cacheOriginalMethod.apply(this, [originalMethod, options, args]);
     };
 }
 
-function cacheOriginalMethod(originalMethod: Method, options: CacheableOptions, args: any[]): any {
+function cacheOriginalMethod(this: Object, originalMethod: Method, options: CacheableOptions, args: any[]): any {
 
-    const map = CacheRegistryProvider.forScope(options.scope!).getOrInit(this, originalMethod);
+    const map = CacheRegistryProvider.forScope(options.scope).getOrInit(this, originalMethod);
     const cacheKey = buildCacheKey(args, `${this.constructor.name}::${originalMethod.name}`);
 
     if (map.has(cacheKey)) {
         return map.get(cacheKey);
     } else {
-        const returnValueOrPromise = originalMethod.apply(this, args as any);
+        const returnValueOrPromise = originalMethod.apply(this, args);
         function returnValueHandler(returnValue: any) {
             if (returnValue != undefined || options.cacheUndefined === true) {
                 map.set(cacheKey, returnValue, options.ttl);
@@ -45,29 +46,39 @@ function cacheOriginalMethod(originalMethod: Method, options: CacheableOptions, 
     }
 }
 
-function buildCacheKey(args: any[], symbolName: string): string {
+function buildCacheKey(args: any[], symbolName: string): string | symbol {
     if (!args || !args.length) {
-        return '__no_args__';
+        return NoArgsCacheKey;
     }
 
-    const strings = args.map((it: any, index: number) => {
+    const argCacheKeys = args.map((it: any, index: number) => {
         if (it === null) {
-            return '__null__';
+            return NullValueCacheKey;
         } else if (it === undefined) {
-            return '__undefined__';
+            return UndefinedValueCacheKey;
         } else if (typeof it === 'object' && implementsCacheableKey(it)) {
             return it.cacheKey();
         } else {
-            if (it.toString === Object.prototype.toString) {
-                throw new Error('Cannot cache: ' + symbolName + '. To serve as a cache key, a parameter must ' +
-                    'override toString, and return a unique value. The parameter at index ' + index + ' does not. ' +
-                    'Alternatively, consider providing a hash function.');
-            } else {
-                return it.toString();
+            try {
+                // Serialise all values to JSON. This helps us differentiate between the number 4 and the string "4".
+                // Also, boolean true from string "true".
+                return JSON.stringify(it);
+            } catch {
+                throw new UncacheableArgumentError([
+                    'Cannot cache: "' + symbolName + '".',
+                    'To serve as a cache key, a parameter must be serializable to JSON,',
+                    'and should return a unique value.',
+                    'The argument at index ' + index + ' does not.',
+                    'Alternatively, consider providing a hash function, by implementing the CacheableKey interface.'
+                ].join(' '));
             }
         }
     });
-    return strings.reduce((previousValue, currentValue) => `${previousValue}_${currentValue}`);
+    if (argCacheKeys.length === 1) {
+        return argCacheKeys[0]; // If it's a single symbol, we want to return it as the single cache key.
+    } else {
+        return argCacheKeys.reduce((previousValue, currentValue) => `${String(previousValue)}_${String(currentValue)}`);
+    }
 }
 
 /**
