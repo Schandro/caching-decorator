@@ -18,11 +18,10 @@
     "ttl"
   ],
   "files": [
-    "src/**/*",
     "dist/**/*"
   ],
-  "main": "dist/Cacheable.js",
-  "types": "dist/Cacheable.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "MSTS",
   "license": "Mozilla Public License Version 2.0",
   "scripts": {

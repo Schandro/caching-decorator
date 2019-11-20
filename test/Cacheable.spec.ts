@@ -1,17 +1,18 @@
 import { Dwarf } from './Dwarf';
 import { DwarfRepository } from './DwarfRepository';
 import { app } from './SimpleApp';
-
-const Stopwatch = require('statman-stopwatch');
-
-const request = require('supertest');
+import * as request from 'supertest';
+import Stopwatch = require('statman-stopwatch');
+import { NoArgsCacheKey, NullValueCacheKey, UndefinedValueCacheKey } from '../src/Symbols';
+import { CacheableKey } from '../src/CacheableKey';
+import { CacheableDwarf } from './CacheableDwarf';
 
 describe('Cacheable()', () => {
 
     let dwarfRepo: DwarfRepository;
 
-    function getGlobalCacheEntry<T>(methodName: keyof typeof dwarfRepo, cacheKey: string): T | undefined {
-        const cacheableMap = dwarfRepo['__cacheable_map_' + methodName];
+    function getGlobalCacheEntry<T>(methodName: keyof typeof dwarfRepo, cacheKey: string | symbol): T | undefined {
+        const cacheableMap = (<any>dwarfRepo)['__cacheable_map_' + methodName];
         if (cacheableMap) {
             return cacheableMap.get(cacheKey);
         } else {
@@ -22,7 +23,7 @@ describe('Cacheable()', () => {
     async function doAsyncCacheTest<T>(
         expected: T,
         methodName: keyof typeof dwarfRepo,
-        cacheKey: string,
+        cacheKey: string | symbol,
         beforeTime: number,
         afterTime: number,
         testExecutor: () => Promise<T>
@@ -61,7 +62,7 @@ describe('Cacheable()', () => {
             await doAsyncCacheTest(
                 new Dwarf('Huck', 'Finn'),
                 'findHappiest',
-                '__no_args__',
+                NoArgsCacheKey,
                 99,
                 10,
                 () => dwarfRepo.findHappiest()
@@ -72,7 +73,7 @@ describe('Cacheable()', () => {
             await doAsyncCacheTest(
                 1000000000,
                 'nonAsync',
-                '__no_args__',
+                NoArgsCacheKey,
                 99,
                 10,
                 async () => dwarfRepo.nonAsync()
@@ -87,33 +88,61 @@ describe('Cacheable()', () => {
             testExecutor: () => T,
             expectedIndex: number = 0
         ) {
-            expect(testExecutor).toThrow('Cannot cache: ' +
-                'DwarfRepository::' + methodName + '. To serve as a cache key, a parameter must ' +
-                'override toString, and return a unique value. The parameter at index ' + expectedIndex + ' does not. Alternatively, ' +
-                'consider providing a hash function.');
+            expect(testExecutor).toThrow('Cannot cache: "DwarfRepository::' + methodName + '". ' +
+                'To serve as a cache key, a parameter must be serializable to JSON, and should return a unique value. ' +
+                'The argument at index ' + String(expectedIndex) + ' does not. ' +
+                'Alternatively, consider providing a hash function, by implementing the CacheableKey interface.');
         }
 
-        it('it builds a cache key by calling toString on a single parameter method', async () => {
+        it('it builds a cache key by serializing a single parameter method to JSON', async () => {
             await doAsyncCacheTest(
                 12,
                 'countByLastName',
-                'Blues',
+                '"Blues"',
                 99,
                 10,
                 () => dwarfRepo.countByLastName('Blues')
             );
         });
 
+        it(`does not throw an error if the argument can be serialised to JSON`, async () => {
+            await doAsyncCacheTest(
+                new Dwarf('Huck', 'Finn'),
+                'findWithInterestsMatching',
+                `{"firstName":"Barbecue","lastName":"Bob","siblings":[]}`,
+                Number.NEGATIVE_INFINITY, // don't care about timing in this test
+                Number.POSITIVE_INFINITY,
+                () => dwarfRepo.findWithInterestsMatching(new Dwarf('Barbecue', 'Bob'))
+            );
+        });
+
+        it(`does not throw an error if the argument cannot be serialised to JSON, but implements CacheableKey`, async () => {
+            const brother = new CacheableDwarf('Barbecue', 'Bob');
+            const sister = new CacheableDwarf(`Grillin'`, 'Greta', [brother]);
+            brother.siblings.push(sister);
+            await doAsyncCacheTest(
+                new Dwarf('Huck', 'Finn'),
+                'findWithInterestsMatching',
+                `Barbecue:Bob`, // NOTE: no quotes within this string value, because of custom cache key
+                Number.NEGATIVE_INFINITY, // don't care about timing in this test
+                Number.POSITIVE_INFINITY,
+                () => dwarfRepo.findWithInterestsMatching(brother)
+            );
+        });
+
         it(`throws an error if no hash function is provided and the method parameter:
             - Does not implement CacheableKey
-            - does not override toString
-            `, () => {
+            - Cannot be serialized to JSON`, () => {
             doCacheKeyErrorTest(
                 'findWithInterestsMatching',
                 () => {
+                    // First, we create a circular reference, which can't be serialized to JSON.
+                    const brother = new Dwarf('Barbecue', 'Bob');
+                    const sister = new Dwarf(`Grillin'`, 'Greta', [brother]);
+                    brother.siblings.push(sister);
                     // NOTE: the expected error is thrown before promise is created/returned, because it's thrown in the
                     //  the decorator.
-                    dwarfRepo.findWithInterestsMatching(new Dwarf('Barbecue', 'Bob'))
+                    dwarfRepo.findWithInterestsMatching(brother)
                 }
             );
         });
@@ -122,7 +151,7 @@ describe('Cacheable()', () => {
             await doAsyncCacheTest(
                 'Hello, dwarf!',
                 'greetDwarf',
-                '__undefined__',
+                UndefinedValueCacheKey,
                 Number.NEGATIVE_INFINITY, // don't care about timing in this test
                 Number.POSITIVE_INFINITY,
                 async () => dwarfRepo.greetDwarf(undefined)
@@ -133,7 +162,7 @@ describe('Cacheable()', () => {
             await doAsyncCacheTest(
                 'Hello, dwarf!',
                 'greetDwarf',
-                '__null__',
+                NullValueCacheKey,
                 Number.NEGATIVE_INFINITY, // don't care about timing in this test
                 Number.POSITIVE_INFINITY,
                 async () => dwarfRepo.greetDwarf(null)
@@ -143,14 +172,25 @@ describe('Cacheable()', () => {
 
     describe('When used on a method that takes multiple parameters', () => {
 
-        it('it builds a cache key by calling toString on a multi parameter method', async () => {
+        it('it builds a cache key by serializing multiple arguments to JSON', async () => {
             await doAsyncCacheTest(
                 1,
                 'countByFirstAndLastName',
-                'Jasper_Blues',
+                '"Jasper"_"Blues"',
                 50,
                 10,
                 () => dwarfRepo.countByFirstAndLastName('Jasper', 'Blues')
+            );
+        });
+
+        it('the generated cache key handles null and undefined', async () => {
+            await doAsyncCacheTest(
+                1,
+                'countByFirstAndLastName',
+                `Symbol(null)_Symbol(undefined)`,
+                50,
+                10,
+                () => dwarfRepo.countByFirstAndLastName(null, undefined)
             );
         });
     });
@@ -194,7 +234,7 @@ describe('Cacheable()', () => {
             await doAsyncCacheTest(
                 undefined,
                 'findSaddest',
-                '__no_args__',
+                NoArgsCacheKey,
                 99,
                 10,
                 () => dwarfRepo.findSaddest()
@@ -205,7 +245,7 @@ describe('Cacheable()', () => {
             await doAsyncCacheTest(
                 null,
                 'findGrumpiest',
-                '__no_args__',
+                NoArgsCacheKey,
                 99,
                 10,
                 () => dwarfRepo.findGrumpiest()
@@ -216,7 +256,7 @@ describe('Cacheable()', () => {
             const expected = new Dwarf(`Mark`, `MyWords`);
 
             // Check that the cache is empty to start with.
-            let cacheEntry = getGlobalCacheEntry('findGrumpiestWithoutCachingNulls', '__no_args__');
+            let cacheEntry = getGlobalCacheEntry('findGrumpiestWithoutCachingNulls', NoArgsCacheKey);
             expect(cacheEntry).toBe(undefined);
 
             const watch = new Stopwatch();
@@ -225,7 +265,7 @@ describe('Cacheable()', () => {
             let grumpy = await dwarfRepo.findGrumpiestWithoutCachingNulls();
 
             // Verify that the cache was not populated
-            cacheEntry = getGlobalCacheEntry('findGrumpiestWithoutCachingNulls', '__no_args__');
+            cacheEntry = getGlobalCacheEntry('findGrumpiestWithoutCachingNulls', NoArgsCacheKey);
             expect(cacheEntry).toBe(undefined);
 
             expect(grumpy).toBeNull();
@@ -237,7 +277,7 @@ describe('Cacheable()', () => {
             grumpy = await dwarfRepo.findGrumpiestWithoutCachingNulls();
 
             // Verify that the cache was not populated
-            cacheEntry = getGlobalCacheEntry('findGrumpiestWithoutCachingNulls', '__no_args__');
+            cacheEntry = getGlobalCacheEntry('findGrumpiestWithoutCachingNulls', NoArgsCacheKey);
             expect(cacheEntry).toEqual(expected);
 
             expect(grumpy).not.toBeNull();

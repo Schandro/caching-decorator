@@ -22,10 +22,9 @@ public async findHappiest(): Promise<Dwarf> {
 
 ## Methods with Parameters
 
-### When the type of each parameter uniquely overrides toString . .  
+### When the type of each parameter can be serialized to JSON . . .
 
-If the parameters override `toString` to return a unique value representing the state of the parameter, simply apply 
-the decorator: 
+If the parameters can be serialized to JSON, simply apply the decorator: 
 
 ```typescript
 @Cacheable()
@@ -40,9 +39,11 @@ public async countByLastName(name: string): Promise<number> {
 
 Subsequent invocations for the same set of arguments will return the cached value. Values will be cached globally, until the end of time - consider the memory implications! For example, there should be a finite set of possible argument values.   
 
+Note that argument values of `undefined` are supported, even though `undefined` is not a valid JSON value. (`undefined` within objects is still not supported.)
+
 ### When the cache key can't be inferred . . .
 
-If the cache key can't be inferred, parameters can implement the `CacheableKey` interface: 
+If the argument cannot be serialized to JSON (perhaps to due circular references) and the cache key can't be inferred, parameters can implement the `CacheableKey` interface: 
 
 ```typescript
 export class WeatherConditions implements CacheableKey {
@@ -70,7 +71,7 @@ public async findAdaptedFor(weather: WeatherConditions): Promise<Dwarf> {
 The default scope is global. The previous examples are the equivalent of: 
 
 ```typescript
-@Cacheable({scope: Scope.GLOBAL})
+@Cacheable({scope: 'GLOBAL'})
 public async findHappiest(): Promise<Dwarf> {
     // etc
 } 
@@ -80,12 +81,12 @@ public async findHappiest(): Promise<Dwarf> {
 
 TypeScript cacheable integrates with [cls-hooked](https://github.com/jeff-lewis/cls-hooked) to provide caching scoped to the call-chain, such as the current http request in a web app. 
 
-## Example:
+### Example:
 
 The first invocation to the method below, _within the current http request_, will compute a new value, after which the cached value will be returned. 
 
 ```typescript
-@Cacheable({ scope: Scope.LOCAL_STORAGE })
+@Cacheable({ scope: 'LOCAL_STORAGE' })
 public async findCompanion(): Promise<Dwarf> {
     return new Promise((resolve) => {
         setTimeout(() => {

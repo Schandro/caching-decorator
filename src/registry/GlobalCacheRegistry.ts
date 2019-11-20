@@ -1,6 +1,6 @@
 import { ExpiringMap } from '../ExpiringMap';
 import { CacheRegistry } from './CacheRegistry';
-import { Method } from '../Cacheable';
+import { Method } from '../Types';
 
 export class GlobalCacheRegistry implements CacheRegistry {
 

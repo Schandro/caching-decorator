@@ -1,6 +1,5 @@
 import { Cacheable } from '../src/Cacheable';
 import { Dwarf } from './Dwarf';
-import { Scope } from '../src/Scope';
 
 const faker = require('faker');
 
@@ -34,7 +33,7 @@ export class DwarfRepository {
     }
 
     @Cacheable({ cacheUndefined: true })
-    public async findGrumpiest(): Promise<Dwarf> {
+    public async findGrumpiest(): Promise<Dwarf | null> {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve(null);
@@ -43,7 +42,7 @@ export class DwarfRepository {
     }
 
     @Cacheable({ cacheUndefined: false })
-    public async findGrumpiestWithoutCachingNulls(): Promise<Dwarf> {
+    public async findGrumpiestWithoutCachingNulls(): Promise<Dwarf | null> {
         return new Promise((resolve) => {
             setTimeout(() => {
                 if (this.isGrumpy) {
@@ -65,7 +64,7 @@ export class DwarfRepository {
         });
     }
 
-    @Cacheable({ scope: Scope.LOCAL_STORAGE })
+    @Cacheable({ scope: 'LOCAL_STORAGE' })
     public async findRandom(): Promise<Dwarf> {
         return new Promise((resolve) => {
             setTimeout(() => {
@@ -85,7 +84,7 @@ export class DwarfRepository {
     }
 
     @Cacheable()
-    public async countByFirstAndLastName(firstName: string, lastName: string): Promise<number> {
+    public async countByFirstAndLastName(firstName: string | null, lastName: string | undefined): Promise<number> {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve(1);
