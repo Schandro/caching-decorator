@@ -5,22 +5,25 @@
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "noImplicitThis": false,
-    "suppressImplicitAnyIndexErrors": true,
-    "strictPropertyInitialization": false,
+    "strict": true,
     "target": "es2018",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
       "*": [
-        "node_modules/*",
-        "src/typings/*"
+        "node_modules/*"
       ]
     }
   },
   "exclude": [
     "node_modules",
-    "aurora"
+    "aurora",
+    "dist"
+  ],
+  "include": [
+    "src",
+    "test",
+    "typings"
   ]
 }

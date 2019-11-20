@@ -1,6 +1,6 @@
 import { ExpiringMap } from '../ExpiringMap';
-import { Method } from '../Cacheable';
+import { Method } from '../Types';
 
 export interface CacheRegistry {
-    getOrInit(targetObject: any, method: Method): ExpiringMap<string, any>;
+    getOrInit(targetObject: any, method: Method): ExpiringMap<string | symbol, any>;
 }
