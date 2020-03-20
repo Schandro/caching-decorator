@@ -3,7 +3,6 @@ const EventEmitter = require('events');
 import { MapEntry } from './MapEntry';
 
 export class ExpiringMap<K, V> extends EventEmitter {
-
     private store: Map<K, MapEntry<V>>;
 
     constructor() {
@@ -17,21 +16,37 @@ export class ExpiringMap<K, V> extends EventEmitter {
     public set(key: K, value: V, duration?: number) {
         const entity = new MapEntry(value, duration);
         this.store.set(key, entity);
-        if (duration) {
-            setTimeout(() => {
-                this.store.delete(key);
-            }, duration);
-        }
         this.emit('save', key, value, duration);
     }
 
     public get(key: K) {
         const entity = this.store.get(key);
-        return entity === undefined || entity.isExpired ? undefined : entity.data;
+        if (entity === undefined) {
+            return undefined;
+        }
+        if (entity.isExpired) {
+            this.store.delete(key);
+            return undefined;
+        }
+        return entity.data;
     }
 
     public has(key: K) {
-        return this.store.has(key);
+        return this.store.has(key) && !this.store.get(key)?.isExpired;
+    }
+
+    public delete(key: K) {
+        if (this.store.has(key)) {
+            this.store.delete(key);
+        }
+    }
+
+    public clear() {
+        this.store.clear();
+    }
+
+    public get size(): number {
+        return this.store.size;
     }
 
     private clean(): void {
@@ -41,5 +56,4 @@ export class ExpiringMap<K, V> extends EventEmitter {
             }
         });
     }
-
 }

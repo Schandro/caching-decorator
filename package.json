@@ -1,6 +1,6 @@
 {
   "name": "typescript-cacheable",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "An in-memory caching (memoization) decorator for Typescript",
   "keywords": [
     "cache",
@@ -23,7 +23,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "MSTS",
-  "license": "Mozilla Public License Version 2.0",
+  "license": "MPL-2.0",
   "scripts": {
     "build": "rm -fr dist && tsc -p tsconfig.build.json --strict && npm run lint && npm test",
     "format": "prettier --write \"src/**/*.ts\"",

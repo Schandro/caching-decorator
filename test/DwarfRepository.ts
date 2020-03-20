@@ -4,19 +4,17 @@ import { Dwarf } from './Dwarf';
 const faker = require('faker');
 
 export class DwarfRepository {
-
     private isGrumpy: boolean = false;
 
     @Cacheable()
     public nonAsync(): number {
-        for (let i = 0; i < 1000000000; i++) {
-        }
+        for (let i = 0; i < 1000000000; i++) {}
         return 1000000000;
     }
 
     @Cacheable()
     public async findHappiest(): Promise<Dwarf> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             setTimeout(() => {
                 resolve(new Dwarf('Huck', 'Finn'));
             }, 100);
@@ -25,7 +23,7 @@ export class DwarfRepository {
 
     @Cacheable()
     public async findSaddest(): Promise<Dwarf> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             setTimeout(() => {
                 resolve(undefined);
             }, 100);
@@ -34,7 +32,7 @@ export class DwarfRepository {
 
     @Cacheable({ cacheUndefined: true })
     public async findGrumpiest(): Promise<Dwarf | null> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             setTimeout(() => {
                 resolve(null);
             }, 100);
@@ -43,7 +41,7 @@ export class DwarfRepository {
 
     @Cacheable({ cacheUndefined: false })
     public async findGrumpiestWithoutCachingNulls(): Promise<Dwarf | null> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             setTimeout(() => {
                 if (this.isGrumpy) {
                     resolve(new Dwarf(`Mark`, `MyWords`));
@@ -57,7 +55,7 @@ export class DwarfRepository {
 
     @Cacheable({ ttl: 1000 })
     public async findHappiestWithTimeout(): Promise<Dwarf> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             setTimeout(() => {
                 resolve(new Dwarf('Huck', 'Finn'));
             }, 100);
@@ -66,7 +64,26 @@ export class DwarfRepository {
 
     @Cacheable({ scope: 'LOCAL_STORAGE' })
     public async findRandom(): Promise<Dwarf> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                const dwarf = new Dwarf(faker.name.firstName(), faker.name.lastName());
+                resolve(dwarf);
+            }, 100);
+        });
+    }
+
+    @Cacheable({ scope: 'LOCAL_STORAGE' })
+    public async findTheAnswer(): Promise<number> {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                resolve(42);
+            }, 100);
+        });
+    }
+
+    @Cacheable({ scope: 'LOCAL_STORAGE' })
+    public async findUncle(name: string): Promise<Dwarf> {
+        return new Promise(resolve => {
             setTimeout(() => {
                 const dwarf = new Dwarf(faker.name.firstName(), faker.name.lastName());
                 resolve(dwarf);
@@ -76,7 +93,7 @@ export class DwarfRepository {
 
     @Cacheable()
     public async countByLastName(name: string): Promise<number> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             setTimeout(() => {
                 resolve(12);
             }, 100);
@@ -85,7 +102,7 @@ export class DwarfRepository {
 
     @Cacheable()
     public async countByFirstAndLastName(firstName: string | null, lastName: string | undefined): Promise<number> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             setTimeout(() => {
                 resolve(1);
             }, 50);
@@ -94,7 +111,7 @@ export class DwarfRepository {
 
     @Cacheable()
     public async findWithInterestsMatching(customer: Dwarf): Promise<Dwarf> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             setTimeout(() => {
                 resolve(new Dwarf('Huck', 'Finn'));
             }, 100);
@@ -103,6 +120,6 @@ export class DwarfRepository {
 
     @Cacheable()
     public greetDwarf(name: string | undefined | null): string {
-        return `Hello, ${ name || 'dwarf' }!`;
+        return `Hello, ${name || 'dwarf'}!`;
     }
 }
