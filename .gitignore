@@ -4,3 +4,4 @@ node_modules
 *.js
 *.log
 dist/
+yarn.lock
