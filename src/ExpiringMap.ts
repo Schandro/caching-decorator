@@ -49,6 +49,10 @@ export class ExpiringMap<K, V> extends EventEmitter {
         return this.store.size;
     }
 
+    public keys(): K[] {
+        return Array.from(this.store.keys());
+    }
+
     private clean(): void {
         this.store.forEach((value: MapEntry<V>, key: K) => {
             if (value.isExpired) {

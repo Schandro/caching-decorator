@@ -7,7 +7,11 @@ export {
     localStorageClear,
     localStorageDelete,
     localStorageGet,
-    localStorageSet
+    localStorageSet,
+    globalMethods,
+    globalKeys,
+    localStorageMethods,
+    localStorageKeys
 } from './Cacheable';
 export { CacheableOptions } from './CacheableOptions';
 export { Scope } from './Scope';

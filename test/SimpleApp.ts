@@ -121,6 +121,11 @@ app.get(
                 expect(cacheVal).toEqual(original.get(name));
             }
         }
+        const janeDoe = await dwarfRepo.findAuntie('a', true);
+        const harrietDoe = new Dwarf('Harriet', 'Doe');
+        localStorageSet(dwarfRepo, 'findAuntie', ['a', false], harrietDoe);
+        const unknown = await dwarfRepo.findAuntie('a', false);
+        expect(unknown).toEqual(harrietDoe);
         res.send({ ok: true });
     }
 );

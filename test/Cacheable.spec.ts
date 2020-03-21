@@ -10,7 +10,7 @@ import { globalClear, globalDelete, globalGet, globalSet } from '../src/Cacheabl
 describe('Cacheable()', () => {
     let dwarfRepo: DwarfRepository;
 
-    function getGlobalCacheEntry<T>(methodName: keyof typeof dwarfRepo, cacheKey: string | symbol): T | undefined {
+    function getGlobalCacheEntry<T>(methodName: keyof typeof dwarfRepo, cacheKey: string): T | undefined {
         const cacheableMap = (<any>dwarfRepo)['__cacheable_map_' + methodName];
         if (cacheableMap) {
             return cacheableMap.get(cacheKey);
@@ -22,7 +22,7 @@ describe('Cacheable()', () => {
     async function doAsyncCacheTest<T>(
         expected: T,
         methodName: keyof typeof dwarfRepo,
-        cacheKey: string | symbol,
+        cacheKey: string,
         beforeTime: number,
         afterTime: number,
         testExecutor: () => Promise<T>
@@ -159,8 +159,13 @@ describe('Cacheable()', () => {
         });
 
         it('the generated cache key handles null and undefined', async () => {
-            await doAsyncCacheTest(1, 'countByFirstAndLastName', `Symbol(null)_Symbol(undefined)`, 50, 10, () =>
-                dwarfRepo.countByFirstAndLastName(null, undefined)
+            await doAsyncCacheTest(
+                1,
+                'countByFirstAndLastName',
+                `${NullValueCacheKey}_${UndefinedValueCacheKey}`,
+                50,
+                10,
+                () => dwarfRepo.countByFirstAndLastName(null, undefined)
             );
         });
     });

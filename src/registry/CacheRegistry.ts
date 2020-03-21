@@ -1,5 +1,6 @@
 import { ExpiringMap } from '../ExpiringMap';
 
 export interface CacheRegistry {
-    getOrInit(targetObject: any, methodName: string): ExpiringMap<string | symbol, any>;
+    getOrInit(targetObject: any, methodName: string): ExpiringMap<string, any>;
+    getOrInitDir(targetObject: any): Set<string>;
 }

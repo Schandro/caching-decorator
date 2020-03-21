@@ -91,6 +91,16 @@ export class DwarfRepository {
         });
     }
 
+    @Cacheable({ scope: 'LOCAL_STORAGE' })
+    public async findAuntie(p1: string, p2: boolean): Promise<Dwarf> {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                const dwarf = new Dwarf('Jane', 'Doe');
+                resolve(dwarf);
+            }, 100);
+        });
+    }
+
     @Cacheable()
     public async countByLastName(name: string): Promise<number> {
         return new Promise(resolve => {

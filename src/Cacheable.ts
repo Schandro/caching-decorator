@@ -51,6 +51,24 @@ export function localStorageSet(target: Object, methodName: string, args: any[],
     map.set(key, val);
 }
 
+export function globalMethods(target: Object): Set<string> {
+    return CacheRegistryProvider.forScope('GLOBAL').getOrInitDir(target);
+}
+
+export function globalKeys(target: Object, methodName: string): string[] {
+    const map = CacheRegistryProvider.forScope('GLOBAL').getOrInit(target, methodName);
+    return map.keys();
+}
+
+export function localStorageMethods(target: Object): Set<string> {
+    return CacheRegistryProvider.forScope('LOCAL_STORAGE').getOrInitDir(target);
+}
+
+export function localStorageKeys(target: Object, methodName: string): string[] {
+    const map = CacheRegistryProvider.forScope('LOCAL_STORAGE').getOrInit(target, methodName);
+    return map.keys();
+}
+
 export function Cacheable(options?: Partial<CacheableOptions>) {
     return (target: Object, propertyKey: string, descriptor: TypedPropertyDescriptor<any>) => {
         if (descriptor.value != undefined) {
@@ -91,7 +109,7 @@ function cacheOriginalMethod(this: Object, originalMethod: Method, options: Cach
     }
 }
 
-function buildCacheKey(args: any[], symbolName: string): string | symbol {
+function buildCacheKey(args: any[], symbolName: string): string {
     if (!args || !args.length) {
         return NoArgsCacheKey;
     }

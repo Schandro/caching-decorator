@@ -189,12 +189,14 @@ Sometimes you need to be able to directly manipulate the cache outside the funct
 
 The convenience methods are:
 
-| Action | Purpose                                      | GLOBAL         | LOCAL_STORAGE        | Arguments                                      |
-| ------ | -------------------------------------------- | -------------- | -------------------- | ---------------------------------------------- |
-| Clear  | Clear all cache entries for an object method | `globalClear`  | `localStorageClear`  | target object, method name                     |
-| Delete | Delete a single cache entry                  | `globalDelete` | `localStorageDelete` | target object, method name, method args        |
-| Get    | Get a cached value                           | `globalGet`    | `localStorageGet`    | target object, method name, method args        |
-| Set    | Set a cached value                           | `globalSet`    | `localStorageSet`    | target object, method name, method args, value |
+| Action  | Purpose                                      | GLOBAL          | LOCAL_STORAGE         | Arguments                                      |
+| ------- | -------------------------------------------- | --------------- | --------------------- | ---------------------------------------------- |
+| Clear   | Clear all cache entries for an object method | `globalClear`   | `localStorageClear`   | target object, method name                     |
+| Delete  | Delete a single cache entry                  | `globalDelete`  | `localStorageDelete`  | target object, method name, method args        |
+| Get     | Get a cached value                           | `globalGet`     | `localStorageGet`     | target object, method name, method args        |
+| Set     | Set a cached value                           | `globalSet`     | `localStorageSet`     | target object, method name, method args, value |
+| Methods | Return cached methods for an object          | `globalMethods` | `localStorageMethods` | target object                                  |
+| Keys    | Return cached keys for an object method      | `globalKeys`    | `localStorageKeys`    | target object, method                          |
 
 ## Example
 
@@ -237,7 +239,11 @@ Obviously our code is never going to call this method more than once for a reque
     }
 ```
 
-Then we think it would be a good idea if any call with `forUpdate` set to `true` would populate the cache for the same `id` value, but `forUpdate` set to `false`:
+Then we think it would be a good idea if any call with `forUpdate` set to `true` would populate the cache for the same `id` value, but `forUpdate` set to `false`.
+
+**Note**:
+
+Because our method defines an argument with a default value (`forUpdate`) we need to set cache entries for both when the argument is populated explicitly and when it is populated by default:
 
 ```typescript
     @Cacheable({ scope: 'LOCAL_STORAGE' })
@@ -252,6 +258,7 @@ Then we think it would be a good idea if any call with `forUpdate` set to `true`
         const invoice = this.fromDB(rows[0]);
         if (forUpdate) {
             invoice.captureBeforeUpdate();
+            localStorageSet(this, 'findById', [id], invoice);
             localStorageSet(this, 'findById', [id, false], invoice);
         }
         return invoice;

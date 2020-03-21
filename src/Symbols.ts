@@ -1,4 +1,4 @@
-// Use symbols instead of string values for special cache keys. Symbols are globally unique.
-export const NoArgsCacheKey = Symbol('NoArgsCacheKey');
-export const NullValueCacheKey = Symbol('null');
-export const UndefinedValueCacheKey = Symbol('undefined');
+// Use emoji for special cache keys.
+export const NoArgsCacheKey = '_😶_';
+export const NullValueCacheKey = '_😐_';
+export const UndefinedValueCacheKey = '_🙄_';
