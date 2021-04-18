@@ -1,4 +1,1 @@
-export type Scope = (
-    | 'GLOBAL'
-    | 'LOCAL_STORAGE'
-);
+export type Scope = 'GLOBAL';

@@ -1,6 +1,5 @@
 import { Dwarf } from './Dwarf';
 import { DwarfRepository } from './DwarfRepository';
-import { app } from './SimpleApp';
 import * as request from 'supertest';
 import Stopwatch = require('statman-stopwatch');
 import { NoArgsCacheKey, NullValueCacheKey, UndefinedValueCacheKey } from '../src/Symbols';
@@ -252,28 +251,6 @@ describe('Cacheable()', () => {
         });
     });
 
-    describe('when the scope is local storage', () => {
-        it('it should return the scoped value', async () => {
-            const responses = new Set();
-            const count = 7;
-
-            function validate(response: any) {
-                const fullName = `${response.dwarf.firstName} ${response.dwarf.lastName}`;
-                expect(responses.has(fullName)).toBe(false);
-                responses.add(fullName);
-            }
-
-            for (let i = 0; i < count; i++) {
-                await request(app)
-                    .get('/hello')
-                    .expect(200)
-                    .then(result => validate(result.body));
-            }
-
-            expect(responses.size).toEqual(count);
-        });
-    });
-
     describe('direct cache operations', () => {
         it('can clear the global cache', async () => {
             let result: any;
@@ -292,12 +269,6 @@ describe('Cacheable()', () => {
                 let cacheEntry = getGlobalCacheEntry('countByLastName', key);
                 expect(cacheEntry).toBeUndefined();
             }
-        });
-
-        it('can clear the localStorage cache', async () => {
-            await request(app)
-                .get('/cleartest')
-                .expect(200);
         });
 
         it('can delete a key from the global cache', async () => {
@@ -335,12 +306,6 @@ describe('Cacheable()', () => {
             expect(cacheEntry).toBeUndefined();
         });
 
-        it('can delete from the localStorage cache', async () => {
-            await request(app)
-                .get('/deletetest')
-                .expect(200);
-        });
-
         it('can set a value in the global cache', async () => {
             const val = new Dwarf('horrendo', 'revolver');
             const result = await dwarfRepo.findHappiest();
@@ -366,12 +331,6 @@ describe('Cacheable()', () => {
             }
         });
 
-        it('can set a value in the localStorage cache', async () => {
-            await request(app)
-                .get('/settest')
-                .expect(200);
-        });
-
         it('can get a value from the global cache', async () => {
             const happiest = await dwarfRepo.findHappiest();
             const happiestDirect = globalGet(dwarfRepo, 'findHappiest', []);
@@ -380,12 +339,6 @@ describe('Cacheable()', () => {
             const count = await dwarfRepo.countByLastName(name);
             const countDirect = globalGet(dwarfRepo, 'countByLastName', [name]);
             expect(count).toEqual(countDirect);
-        });
-
-        it('can get a value from the localStorage cache', async () => {
-            await request(app)
-                .get('/gettest')
-                .expect(200);
         });
     });
 });

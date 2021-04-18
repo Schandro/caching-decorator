@@ -1,11 +1,8 @@
 import { Scope } from './Scope';
 
 export interface CacheableOptions {
-
     /**
-     * A parameter defining the scope. If not specified, the default is GLOBAL. If LOCAL_STORAGE is specified
-     * then the outcome will be cached within the context of a LOCAL_STORAGE namespace, for example, throughout the
-     * span of an HTTP request.
+     * A parameter defining the scope. If not specified, the default is GLOBAL.
      */
     scope: Scope;
 
@@ -26,7 +23,6 @@ export interface CacheableOptions {
      *
      */
     cacheUndefined: boolean;
-
 }
 
 /**
@@ -38,6 +34,6 @@ export function optionsWithDefaults(options?: Partial<CacheableOptions>): Cachea
     return {
         scope: options && options.scope != undefined ? options.scope : 'GLOBAL',
         ttl: options && options.ttl != undefined ? options.ttl : undefined,
-        cacheUndefined: options && options.cacheUndefined != undefined ? options.cacheUndefined : true,
+        cacheUndefined: options && options.cacheUndefined != undefined ? options.cacheUndefined : true
     };
 }

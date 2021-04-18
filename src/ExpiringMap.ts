@@ -1,22 +1,16 @@
-const EventEmitter = require('events');
-
 import { MapEntry } from './MapEntry';
 
-export class ExpiringMap<K, V> extends EventEmitter {
+export class ExpiringMap<K, V> {
     private store: Map<K, MapEntry<V>>;
 
     constructor() {
-        super();
         this.store = new Map<K, MapEntry<V>>();
-        this.on('save', (args: any[]) => {
-            this.clean();
-        });
     }
 
     public set(key: K, value: V, duration?: number) {
         const entity = new MapEntry(value, duration);
         this.store.set(key, entity);
-        this.emit('save', key, value, duration);
+        this.clean();
     }
 
     public get(key: K) {

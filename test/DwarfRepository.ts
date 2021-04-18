@@ -22,7 +22,7 @@ export class DwarfRepository {
     }
 
     @Cacheable()
-    public async findSaddest(): Promise<Dwarf> {
+    public async findSaddest(): Promise<Dwarf|undefined> {
         return new Promise(resolve => {
             setTimeout(() => {
                 resolve(undefined);
@@ -58,45 +58,6 @@ export class DwarfRepository {
         return new Promise(resolve => {
             setTimeout(() => {
                 resolve(new Dwarf('Huck', 'Finn'));
-            }, 100);
-        });
-    }
-
-    @Cacheable({ scope: 'LOCAL_STORAGE' })
-    public async findRandom(): Promise<Dwarf> {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                const dwarf = new Dwarf(faker.name.firstName(), faker.name.lastName());
-                resolve(dwarf);
-            }, 100);
-        });
-    }
-
-    @Cacheable({ scope: 'LOCAL_STORAGE' })
-    public async findTheAnswer(): Promise<number> {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve(42);
-            }, 100);
-        });
-    }
-
-    @Cacheable({ scope: 'LOCAL_STORAGE' })
-    public async findUncle(name: string): Promise<Dwarf> {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                const dwarf = new Dwarf(faker.name.firstName(), faker.name.lastName());
-                resolve(dwarf);
-            }, 100);
-        });
-    }
-
-    @Cacheable({ scope: 'LOCAL_STORAGE' })
-    public async findAuntie(p1: string, p2: boolean): Promise<Dwarf> {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                const dwarf = new Dwarf('Jane', 'Doe');
-                resolve(dwarf);
             }, 100);
         });
     }

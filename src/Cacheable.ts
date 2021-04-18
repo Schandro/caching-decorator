@@ -10,19 +10,8 @@ export function globalClear(target: Object, methodName: string): void {
     map.clear();
 }
 
-export function localStorageClear(target: Object, methodName: string): void {
-    const map = CacheRegistryProvider.forScope('LOCAL_STORAGE').getOrInit(target, methodName);
-    map.clear();
-}
-
 export function globalDelete(target: Object, methodName: string, args: any[]): void {
     const map = CacheRegistryProvider.forScope('GLOBAL').getOrInit(target, methodName);
-    const key = buildCacheKey(args, `${target.constructor.name}::${methodName}`);
-    map.delete(key);
-}
-
-export function localStorageDelete(target: Object, methodName: string, args: any[]): void {
-    const map = CacheRegistryProvider.forScope('LOCAL_STORAGE').getOrInit(target, methodName);
     const key = buildCacheKey(args, `${target.constructor.name}::${methodName}`);
     map.delete(key);
 }
@@ -33,20 +22,8 @@ export function globalGet(target: Object, methodName: string, args: any[]): any 
     return map.get(key);
 }
 
-export function localStorageGet(target: Object, methodName: string, args: any[]): any {
-    const map = CacheRegistryProvider.forScope('LOCAL_STORAGE').getOrInit(target, methodName);
-    const key = buildCacheKey(args, `${target.constructor.name}::${methodName}`);
-    return map.get(key);
-}
-
 export function globalSet(target: Object, methodName: string, args: any[], val: any): void {
     const map = CacheRegistryProvider.forScope('GLOBAL').getOrInit(target, methodName);
-    const key = buildCacheKey(args, `${target.constructor.name}::${methodName}`);
-    map.set(key, val);
-}
-
-export function localStorageSet(target: Object, methodName: string, args: any[], val: any): void {
-    const map = CacheRegistryProvider.forScope('LOCAL_STORAGE').getOrInit(target, methodName);
     const key = buildCacheKey(args, `${target.constructor.name}::${methodName}`);
     map.set(key, val);
 }
@@ -57,15 +34,6 @@ export function globalMethods(target: Object): Set<string> {
 
 export function globalKeys(target: Object, methodName: string): string[] {
     const map = CacheRegistryProvider.forScope('GLOBAL').getOrInit(target, methodName);
-    return map.keys();
-}
-
-export function localStorageMethods(target: Object): Set<string> {
-    return CacheRegistryProvider.forScope('LOCAL_STORAGE').getOrInitDir(target);
-}
-
-export function localStorageKeys(target: Object, methodName: string): string[] {
-    const map = CacheRegistryProvider.forScope('LOCAL_STORAGE').getOrInit(target, methodName);
     return map.keys();
 }
 

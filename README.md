@@ -1,11 +1,9 @@
 # Caching Decorator
 
+An in-memory caching (memoization) decorator for TypeScript. It will cache the results of expensive methods or property accessors, sync and async. The underlying function is wrapped to apply caching concerns.
+
 caching-decorator is a fork of typescript-cacheable (https://www.npmjs.com/package/typescript-cacheable, https://gitlab.com/msts-public/general/typescript-cacheable). The following was changed:
-* @TODO
-
-# Typescript Cacheable
-
-An in-memory caching (memoization) decorator for TypeScript. It will cache the results of expensive methods or property accessors. The underlying function is wrapped to apply caching concerns.
+* made this library usable in the browser by removing usage of 'cls-hooked' and 'events' and the localStorage scope (not to be confused with the browser localStorage) which was implemented using 'cls-hooked' namespaces.
 
 # Quick Start
 
@@ -70,7 +68,7 @@ public async findAdaptedFor(weather: WeatherConditions): Promise<Dwarf> {
 
 ## Global
 
-The default scope is global. The previous examples are the equivalent of:
+The default (and currently only) scope is global. The previous examples are the equivalent of:
 
 ```typescript
 @Cacheable({scope: 'GLOBAL'})
@@ -78,83 +76,6 @@ public async findHappiest(): Promise<Dwarf> {
     // etc
 }
 ```
-
-## Local
-
-TypeScript cacheable integrates with [cls-hooked](https://github.com/jeff-lewis/cls-hooked) to provide caching scoped to the call-chain, such as the current http request in a web app.
-
-### Example:
-
-The first invocation to the method below, _within the current http request_, will compute a new value, after which the cached value will be returned.
-
-```typescript
-@Cacheable({ scope: 'LOCAL_STORAGE' })
-public async findCompanion(): Promise<Dwarf> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const dwarf = new Dwarf(faker.name.firstName(), faker.name.lastName());
-            resolve(dwarf);
-        }, 100);
-    });
-}
-```
-
-Local storage must be activated to establish the call-chain.
-
-### Activating Local Storage in [Express](https://expressjs.com/)
-
-To be able to use local storage in an express app, bind it to http requests, as follows:
-
-```typescript
-const nameSpaceName = process.env.TYPESCRIPT_CACHEABLE_NAMESPACE || '__tsc_storage__';
-export const localStorage = cls.getNamespace(nameSpaceName) || cls.createNamespace(nameSpaceName);
-app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-    localStorage.bindEmitter(req);
-    localStorage.bindEmitter(res);
-    localStorage.bind(next);
-    return localStorage.run(() => {
-        return next();
-    });
-});
-```
-
-### Activating Local Storage in [NestJS](https://nestjs.com/)
-
-In a NestJS app, http scoped caching can be enabled as follows:
-
-```typescript
-/**
- * Wrap local storage to make it injectable.
- */
-@Injectable()
-export class LocalStorage {
-    public static instance = cls.createNamespace('__tsc_storage__');
-
-    constructor() {}
-
-    private get<T>(key: string): T {
-        return LocalStorage.instance.get(key);
-    }
-
-    private set<T>(key: string, object: T): void {
-        LocalStorage.instance.set(key, object);
-    }
-}
-
-@Injectable()
-export class LocalStorageMiddleware implements NestMiddleware {
-    public use(req: express.Request, res: express.Response, next: express.NextFunction) {
-        LocalStorage.instance.bindEmitter(req);
-        LocalStorage.instance.bindEmitter(res);
-        LocalStorage.instance.bind(next);
-        return LocalStorage.instance.run(() => {
-            return next();
-        });
-    }
-}
-```
-
-Follow the same pattern as above for your own web stack. Open an issue if you need help.
 
 # Time to Live
 
@@ -193,14 +114,14 @@ Sometimes you need to be able to directly manipulate the cache outside the funct
 
 The convenience methods are:
 
-| Action  | Purpose                                      | GLOBAL          | LOCAL_STORAGE         | Arguments                                      |
-| ------- | -------------------------------------------- | --------------- | --------------------- | ---------------------------------------------- |
-| Clear   | Clear all cache entries for an object method | `globalClear`   | `localStorageClear`   | target object, method name                     |
-| Delete  | Delete a single cache entry                  | `globalDelete`  | `localStorageDelete`  | target object, method name, method args        |
-| Get     | Get a cached value                           | `globalGet`     | `localStorageGet`     | target object, method name, method args        |
-| Set     | Set a cached value                           | `globalSet`     | `localStorageSet`     | target object, method name, method args, value |
-| Methods | Return cached methods for an object          | `globalMethods` | `localStorageMethods` | target object                                  |
-| Keys    | Return cached keys for an object method      | `globalKeys`    | `localStorageKeys`    | target object, method                          |
+| Action  | Purpose                                      | GLOBAL          | Arguments                                      |
+| ------- | -------------------------------------------- | --------------- | ---------------------------------------------- |
+| Clear   | Clear all cache entries for an object method | `globalClear`   | target object, method name                     |
+| Delete  | Delete a single cache entry                  | `globalDelete`  | target object, method name, method args        |
+| Get     | Get a cached value                           | `globalGet`     | target object, method name, method args        |
+| Set     | Set a cached value                           | `globalSet`     | target object, method name, method args, value |
+| Methods | Return cached methods for an object          | `globalMethods` | target object                                  |
+| Keys    | Return cached keys for an object method      | `globalKeys`    | target object, method                          |
 
 ## Example
 
@@ -223,10 +144,10 @@ Let's say we have the following method to retrieve an invoice from the database 
     }
 ```
 
-Obviously our code is never going to call this method more than once for a request, but just in case we make it cacheable with the local storage cache:
+Obviously our code is never going to call this method more than once for a request, but just in case we make it cacheable with the global storage cache:
 
 ```typescript
-    @Cacheable({ scope: 'LOCAL_STORAGE' })
+    @Cacheable({ scope: 'GLOBAL' })
     public async findById(id: string, forUpdate: boolean = false): Promise<Invoice> {
         const rows = await this.persistenceManager.query(
             `select * from invoice where id = $1${forUpdate ? ' for no key update' : ''}`,
@@ -250,7 +171,7 @@ Then we think it would be a good idea if any call with `forUpdate` set to `true`
 Because our method defines an argument with a default value (`forUpdate`) we need to set cache entries for both when the argument is populated explicitly and when it is populated by default:
 
 ```typescript
-    @Cacheable({ scope: 'LOCAL_STORAGE' })
+    @Cacheable({ scope: 'GLOBAL' })
     public async findById(id: string, forUpdate: boolean = false): Promise<Invoice> {
         const rows = await this.persistenceManager.query(
             `select * from invoice where id = $1${forUpdate ? ' for no key update' : ''}`,
@@ -262,8 +183,8 @@ Because our method defines an argument with a default value (`forUpdate`) we nee
         const invoice = this.fromDB(rows[0]);
         if (forUpdate) {
             invoice.captureBeforeUpdate();
-            localStorageSet(this, 'findById', [id], invoice);
-            localStorageSet(this, 'findById', [id, false], invoice);
+            globalSet(this, 'findById', [id], invoice);
+            globalSet(this, 'findById', [id, false], invoice);
         }
         return invoice;
     }
@@ -273,4 +194,4 @@ We could do something similar in the `update` method. The `update` method itself
 
 # LICENSE
 
-TypeScript cacheable is licensed under [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/)
+This project is licensed under [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/)
