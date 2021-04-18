@@ -1,7 +1,4 @@
-node_modules
+/node_modules/
+/dist/
 /.idea/
 /.vscode/
-*.js
-*.log
-dist/
-yarn.lock

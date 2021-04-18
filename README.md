@@ -1,7 +1,11 @@
+# Caching Decorator
+
+caching-decorator is a fork of typescript-cacheable (https://www.npmjs.com/package/typescript-cacheable, https://gitlab.com/msts-public/general/typescript-cacheable). The following was changed:
+* @TODO
+
 # Typescript Cacheable
 
-An in-memory caching (memoization) decorator for TypeScript. It will cache the results of expensive methods or property accessors. The underlying function is wrapped to apply
-caching concerns.
+An in-memory caching (memoization) decorator for TypeScript. It will cache the results of expensive methods or property accessors. The underlying function is wrapped to apply caching concerns.
 
 # Quick Start
 
@@ -266,12 +270,6 @@ Because our method defines an argument with a default value (`forUpdate`) we nee
 ```
 
 We could do something similar in the `update` method. The `update` method itself would not use the `@Cacheable()` decorator but after the update completes it would directly populate/update the cache for the `findById` method to avoid any subsequent database round trip.
-
-# Be Involved
-
-TypeScript Cacheable is maintained by [MSTS](https://www.msts.com/en). The organization is an innovator in the fintech space and provides the leading B2B payment experience. We're hiring, by the way!
-
-Contributions are very welcome.
 
 # LICENSE
 
