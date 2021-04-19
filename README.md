@@ -100,7 +100,7 @@ The `cacheUndefined` option specifies how undefined/null return values are treat
 
 The default (true) means that if the cached method returns a null or undefined value, subsequent calls with the same parameters will return null/undefined from the cache, without invoking the underlying method again.
 
-When `false` a null return value from the cache will result in the cached method body being evaluated again. Use this to cache temporal values, such as fx rates where once they exist for a given date are immutable, but may as yet be undefined.
+When `false` a null return value from the cache will result in the cached method body being evaluated again. Use this to cache temporal values, such as fx rates where once they exist for a given date are immutable, but may as yet be undefined. Promises that resolve as null or undefined will still be cached.
 
 ```typescript
 @Cacheable({ cacheUndefined: false })

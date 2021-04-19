@@ -37,16 +37,16 @@ describe('Cacheable()', () => {
 
         // Verify that the cache was populated
         cacheEntry = getGlobalCacheEntry(methodName, cacheKey);
-        expect(cacheEntry).toEqual(expected);
+        expect(await cacheEntry).toEqual(expected);
 
-        expect(result).toEqual(expected);
+        expect(await result).toEqual(expected);
         const time = watch.read();
         expect(time).toBeGreaterThanOrEqual(beforeTime);
         watch.reset();
         watch.start();
 
         result = await testExecutor();
-        expect(result).toEqual(expected);
+        expect(await result).toEqual(expected);
         expect(watch.read()).toBeLessThan(afterTime);
     }
 
@@ -235,7 +235,7 @@ describe('Cacheable()', () => {
 
             expect(grumpy).toBeNull();
             let time = watch.read();
-            expect(time).toBeGreaterThanOrEqual(99);
+            expect(time).toBeLessThan(10);
 
             watch.reset();
             watch.start();
@@ -243,7 +243,7 @@ describe('Cacheable()', () => {
 
             // Verify that the cache was not populated
             cacheEntry = getGlobalCacheEntry('findGrumpiestWithoutCachingNulls', NoArgsCacheKey);
-            expect(cacheEntry).toEqual(expected);
+            expect(await cacheEntry).toEqual(expected);
 
             expect(grumpy).not.toBeNull();
             expect(grumpy).toEqual(expected);
@@ -333,11 +333,11 @@ describe('Cacheable()', () => {
 
         it('can get a value from the global cache', async () => {
             const happiest = await dwarfRepo.findHappiest();
-            const happiestDirect = globalGet(dwarfRepo, 'findHappiest', []);
+            const happiestDirect = await globalGet(dwarfRepo, 'findHappiest', []);
             expect(happiest).toEqual(happiestDirect);
             const name = 'dilroy';
             const count = await dwarfRepo.countByLastName(name);
-            const countDirect = globalGet(dwarfRepo, 'countByLastName', [name]);
+            const countDirect = await globalGet(dwarfRepo, 'countByLastName', [name]);
             expect(count).toEqual(countDirect);
         });
     });

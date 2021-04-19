@@ -40,17 +40,17 @@ export class DwarfRepository {
     }
 
     @Cacheable({ cacheUndefined: false })
-    public async findGrumpiestWithoutCachingNulls(): Promise<Dwarf | null> {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                if (this.isGrumpy) {
+    public findGrumpiestWithoutCachingNulls(): Promise<Dwarf> | null {
+        if (!this.isGrumpy) {
+            this.isGrumpy = true
+            return null;
+        } else {
+            return new Promise(resolve => {
+                setTimeout(() => {
                     resolve(new Dwarf(`Mark`, `MyWords`));
-                } else {
-                    this.isGrumpy = true;
-                    resolve(null);
-                }
-            }, 100);
-        });
+                }, 100);
+            });
+        }
     }
 
     @Cacheable({ ttl: 1000 })

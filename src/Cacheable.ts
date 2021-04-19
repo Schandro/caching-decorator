@@ -62,18 +62,11 @@ function cacheOriginalMethod(this: Object, originalMethod: Method, options: Cach
     if (map.has(cacheKey)) {
         return map.get(cacheKey);
     } else {
-        const returnValueOrPromise = originalMethod.apply(this, args);
-        function returnValueHandler(returnValue: any) {
-            if (returnValue != undefined || options.cacheUndefined === true) {
-                map.set(cacheKey, returnValue, options.ttl);
-            }
-            return returnValue;
+        const returnValue = originalMethod.apply(this, args);
+        if (returnValue != undefined || options.cacheUndefined === true) {
+            map.set(cacheKey, returnValue, options.ttl);
         }
-        if (isPromiseLike(returnValueOrPromise)) {
-            return returnValueOrPromise.then(returnValueHandler);
-        } else {
-            return returnValueHandler(returnValueOrPromise);
-        }
+        return returnValue;
     }
 }
 
@@ -112,18 +105,4 @@ function buildCacheKey(args: any[], symbolName: string): string {
     } else {
         return argCacheKeys.reduce((previousValue, currentValue) => `${String(previousValue)}_${String(currentValue)}`);
     }
-}
-
-/**
- * In order to wait for wrapped methods that return Promises, we need to check if the returned value is a Promise.
- * However, consuming applications might be using their own Promise library (e.g. Bluebird), so we can't simply check if
- * the value is an instance of the global `Promise` object.
- * Instead, we check if the value looks like a Promise, i.e. it is an object that has a `then()` method.
- */
-function isPromiseLike(value: any): value is PromiseLike<any> {
-    return (
-        (typeof value === 'function' || typeof value === 'object') && // functions can have properties just like objects
-        value !== null && // "null" values have type "object"
-        typeof value.then === 'function'
-    );
 }
