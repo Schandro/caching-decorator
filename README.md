@@ -4,6 +4,8 @@ An in-memory caching (memoization) decorator for TypeScript. It will cache the r
 
 caching-decorator is a fork of typescript-cacheable (https://www.npmjs.com/package/typescript-cacheable, https://gitlab.com/msts-public/general/typescript-cacheable). The following was changed:
 * made this library usable in the browser by removing usage of 'cls-hooked' and 'events' and the localStorage scope (not to be confused with the browser localStorage) which was implemented using 'cls-hooked' namespaces.
+* fixed return value of @Cacheable methods that return a Promise
+* changed typescript module from commonjs to es2020
 
 # Quick Start
 
