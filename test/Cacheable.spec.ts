@@ -171,7 +171,7 @@ describe('Cacheable()', () => {
 
     describe(`when used with ttl option`, () => {
         async function sleep(ms: number): Promise<any> {
-            return new Promise(resolve => {
+            return new Promise((resolve) => {
                 setTimeout(resolve, ms);
             });
         }

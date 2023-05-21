@@ -14,7 +14,7 @@ export class DwarfRepository {
 
     @Cacheable()
     public async findHappiest(): Promise<Dwarf> {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             setTimeout(() => {
                 resolve(new Dwarf('Huck', 'Finn'));
             }, 100);
@@ -22,8 +22,8 @@ export class DwarfRepository {
     }
 
     @Cacheable()
-    public async findSaddest(): Promise<Dwarf|undefined> {
-        return new Promise(resolve => {
+    public async findSaddest(): Promise<Dwarf | undefined> {
+        return new Promise((resolve) => {
             setTimeout(() => {
                 resolve(undefined);
             }, 100);
@@ -32,7 +32,7 @@ export class DwarfRepository {
 
     @Cacheable({ cacheUndefined: true })
     public async findGrumpiest(): Promise<Dwarf | null> {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             setTimeout(() => {
                 resolve(null);
             }, 100);
@@ -42,10 +42,10 @@ export class DwarfRepository {
     @Cacheable({ cacheUndefined: false })
     public findGrumpiestWithoutCachingNulls(): Promise<Dwarf> | null {
         if (!this.isGrumpy) {
-            this.isGrumpy = true
+            this.isGrumpy = true;
             return null;
         } else {
-            return new Promise(resolve => {
+            return new Promise((resolve) => {
                 setTimeout(() => {
                     resolve(new Dwarf(`Mark`, `MyWords`));
                 }, 100);
@@ -55,7 +55,7 @@ export class DwarfRepository {
 
     @Cacheable({ ttl: 1000 })
     public async findHappiestWithTimeout(): Promise<Dwarf> {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             setTimeout(() => {
                 resolve(new Dwarf('Huck', 'Finn'));
             }, 100);
@@ -64,7 +64,7 @@ export class DwarfRepository {
 
     @Cacheable()
     public async countByLastName(name: string): Promise<number> {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             setTimeout(() => {
                 resolve(12);
             }, 100);
@@ -73,7 +73,7 @@ export class DwarfRepository {
 
     @Cacheable()
     public async countByFirstAndLastName(firstName: string | null, lastName: string | undefined): Promise<number> {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             setTimeout(() => {
                 resolve(1);
             }, 50);
@@ -82,7 +82,7 @@ export class DwarfRepository {
 
     @Cacheable()
     public async findWithInterestsMatching(customer: Dwarf): Promise<Dwarf> {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             setTimeout(() => {
                 resolve(new Dwarf('Huck', 'Finn'));
             }, 100);

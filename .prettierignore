@@ -1,6 +1,5 @@
-node_modules
-build
-dist
-public
-coverage
-package-lock.json
+/node_modules/
+/dist/
+/.idea/
+/.vscode/
+/yarn.lock

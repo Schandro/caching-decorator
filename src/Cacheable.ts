@@ -50,7 +50,7 @@ export function Cacheable(options?: Partial<CacheableOptions>) {
 }
 
 function wrap(originalMethod: Method, options: CacheableOptions): Method {
-    return function(this: Object, ...args: any[]): any {
+    return function (this: Object, ...args: any[]): any {
         return cacheOriginalMethod.apply(this, [originalMethod, options, args]);
     };
 }
