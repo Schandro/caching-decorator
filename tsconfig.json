@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "module": "es2022",
+        "module": "commonjs",
         "moduleResolution": "node",
         "declaration": true,
         "removeComments": true,
